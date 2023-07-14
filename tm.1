@@ -1,0 +1,28 @@
+.Dd March 2, 2025
+.Dt TM 1
+.Os
+.Sh NAME
+.Nm tm
+.Nd emulate turing machines
+.Sh SYNOPSIS
+.Nm
+.Ar word
+.Sh DESCRIPTION
+Given a
+.Ar word
+that represents a binary number, the turing machine
+will calculate the successor of that binary number.
+.Sh EXIT STATUS
+The program
+.Nm
+returns 0, if it was invoked correctly.
+.Sh EXAMPLES
+The following example is shown as given to the shell:
+.Bl -tag -width indent
+.It Li "tm 111"
+Find the successor of the binary number 111.
+.El
+.Sh HISTORY
+The first version of
+.Nm
+was initially written in 2023.
