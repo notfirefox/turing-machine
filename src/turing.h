@@ -13,8 +13,8 @@ typedef bool (*accept_fn)(const int);
 
 // parameter type for delta function
 struct delta_param {
-  const int state;
-  const char input;
+    const int state;
+    const char input;
 };
 
 // move operation for delta result
@@ -22,9 +22,9 @@ enum move { right, left, none };
 
 // return type for delta function
 struct delta_result {
-  int state;
-  char output;
-  enum move move;
+    int state;
+    char output;
+    enum move move;
 };
 
 // function pointer for delta function
