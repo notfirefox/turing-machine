@@ -55,8 +55,7 @@ impl Tape {
             self.vector[((offset_diff as usize) + i) as usize] = copy[i];
         }
 
-        // assign the attributes to the new values
-        self.vector = vec![self.blank; size];
+        // assign the index to the new index
         self.index = new_index;
     }
 
