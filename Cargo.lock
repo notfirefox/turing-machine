@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "turing-machine-rs"
+name = "turing-machine"
 version = "0.1.0"
