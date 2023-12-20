@@ -43,11 +43,7 @@ impl Tape {
         let relative_index = self.index - old_offset;
 
         let new_offset = ((size as f32) * OFFSET_FACTOR) as i32;
-        let offset_diff = if (new_offset - old_offset) < 0 {
-            old_offset - new_offset
-        } else {
-            new_offset - old_offset
-        };
+        let offset_diff = (new_offset - old_offset).abs();
         let new_index = new_offset + relative_index;
 
         // clone the content of the vector into `copy`
