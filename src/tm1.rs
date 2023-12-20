@@ -1,10 +1,10 @@
 use crate::turing::{DeltaParam, DeltaResult, Move, BLANK};
 
-pub fn accept_1(q: &i32) -> bool {
+pub fn accept(q: &i32) -> bool {
     q == &3
 }
 
-pub fn delta_1(param: &DeltaParam) -> DeltaResult {
+pub fn delta(param: &DeltaParam) -> DeltaResult {
     if param.state == 0 {
         if param.input == '0' || param.input == '1' {
             return DeltaResult::new(0, param.input, Move::Right);
