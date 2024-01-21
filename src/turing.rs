@@ -1,15 +1,17 @@
-pub const BLANK : char = '_';
+pub const BLANK: char = '_';
 
-const OFFSET_FACTOR : f32 = 0.2;
+const OFFSET_FACTOR: f32 = 0.2;
 
 pub struct DeltaParam {
     pub state: i32,
     pub input: char,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq)]
 pub enum Move {
-    Right, Left, None
+    Right,
+    Left,
+    None,
 }
 
 pub struct DeltaResult {
@@ -19,8 +21,12 @@ pub struct DeltaResult {
 }
 
 impl DeltaResult {
-    pub fn new(state: i32, output: char, r#move: Move) -> DeltaResult {
-        DeltaResult { state: state, output: output, r#move: r#move }
+    pub const fn new(state: i32, output: char, r#move: Move) -> Self {
+        Self {
+            state,
+            output,
+            r#move,
+        }
     }
 }
 
@@ -34,8 +40,12 @@ pub struct Tape {
 }
 
 impl Tape {
-    fn new() -> Tape {
-        Tape { index: 0, vector: vec![], blank: BLANK }
+    const fn new() -> Self {
+        Self {
+            index: 0,
+            vector: vec![],
+            blank: BLANK,
+        }
     }
 
     fn resize(&mut self, size: usize) {
@@ -51,8 +61,8 @@ impl Tape {
 
         // set up new vector
         self.vector = vec![self.blank; size];
-        for i in 0..copy.len() {
-            self.vector[((offset_diff as usize) + i) as usize] = copy[i];
+        for (i, v) in copy.iter().enumerate() {
+            self.vector[((offset_diff as usize) + i) as usize] = *v;
         }
 
         // assign the index to the new index
@@ -81,6 +91,7 @@ impl Tape {
         self.vector[self.index as usize] = c;
     }
 
+    // TODO: Fix prepare when len of word is 9
     fn prepare(&mut self, word: &String) {
         let word_length = word.len();
 
@@ -91,10 +102,8 @@ impl Tape {
         let offset = (OFFSET_FACTOR * (size as f32)) as usize;
 
         // Load the word into the new vector
-        let mut i = 0;
-        for c in word.chars() {
+        for (i, c) in word.chars().enumerate() {
             new_vector[offset + i] = c;
-            i += 1;
         }
 
         // Replace the old vector with the new one
@@ -121,15 +130,15 @@ pub struct TuringMachine {
 }
 
 impl TuringMachine {
-    pub fn new(accept : AcceptFn, delta: DeltaFn) -> TuringMachine {
-        TuringMachine {
+    pub fn new(accept: AcceptFn, delta: DeltaFn) -> Self {
+        Self {
             state: 0,
             accept_fn: accept,
             delta_fn: delta,
             tape: Tape::new(),
         }
     }
-     
+
     pub fn process_word(&mut self, word: &String) -> bool {
         self.tape.prepare(word);
         self.tape.print();
@@ -146,7 +155,10 @@ impl TuringMachine {
             let result = delta_fn(&param);
 
             if result.state == -1 {
-                println!("Could not find path for delta({}, {})", &param.state, &param.input);
+                println!(
+                    "Could not find path for delta({}, {})",
+                    &param.state, &param.input
+                );
                 return false;
             }
 
