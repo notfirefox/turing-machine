@@ -1,11 +1,7 @@
-pub const BLANK: char = '_';
+use core::fmt;
+use std::usize;
 
-const OFFSET_FACTOR: f32 = 0.2;
-
-pub struct DeltaParam {
-    pub state: i32,
-    pub input: char,
-}
+pub const BLANK: char = '*';
 
 #[derive(PartialEq, Eq)]
 pub enum Move {
@@ -15,13 +11,14 @@ pub enum Move {
 }
 
 pub struct DeltaResult {
-    state: i32,
+    state: usize,
     output: char,
     r#move: Move,
 }
 
 impl DeltaResult {
-    pub const fn new(state: i32, output: char, r#move: Move) -> Self {
+    #[must_use]
+    pub const fn new(state: usize, output: char, r#move: Move) -> Self {
         Self {
             state,
             output,
@@ -30,106 +27,98 @@ impl DeltaResult {
     }
 }
 
-pub type AcceptFn = Box<dyn Fn(i32) -> bool>;
-pub type DeltaFn = Box<dyn Fn(&DeltaParam) -> DeltaResult>;
+pub type AcceptFn = Box<dyn Fn(usize) -> bool>;
+pub type DeltaFn = Box<dyn Fn(usize, char) -> Option<DeltaResult>>;
 
 pub struct Tape {
-    index: i32,
+    index: usize,
+    dirty: usize,
     vector: Vec<char>,
-    blank: char,
 }
 
 impl Tape {
     const fn new() -> Self {
         Self {
             index: 0,
+            dirty: usize::MAX,
             vector: vec![],
-            blank: BLANK,
         }
-    }
-
-    fn resize(&mut self, size: usize) {
-        let old_offset = ((self.vector.len() as f32) * OFFSET_FACTOR) as i32;
-        let relative_index = self.index - old_offset;
-
-        let new_offset = ((size as f32) * OFFSET_FACTOR) as i32;
-        let offset_diff = (new_offset - old_offset).abs();
-        let new_index = new_offset + relative_index;
-
-        // clone the content of the vector into `copy`
-        let copy = self.vector.clone();
-
-        // set up new vector
-        self.vector = vec![self.blank; size];
-        for (i, v) in copy.iter().enumerate() {
-            self.vector[((offset_diff as usize) + i) as usize] = *v;
-        }
-
-        // assign the index to the new index
-        self.index = new_index;
     }
 
     fn move_left(&mut self) {
-        if (self.index - 1) < 0 {
-            self.resize(self.vector.len() + 10);
+        if self.index == 0 {
+            // insert one blank symbol on the left
+            // by shifting all elements to the right
+            self.vector.insert(0, BLANK);
+            self.index += 1;
         }
         self.index -= 1;
     }
 
     fn move_right(&mut self) {
-        if (self.index + 1) >= (self.vector.len() as i32) {
-            self.resize(self.vector.len() + 10);
+        if self.index == (self.vector.len() - 1) {
+            // append a blank symbol to the vector so that
+            // we can safely increment the element index
+            self.vector.push(BLANK);
         }
         self.index += 1;
     }
 
     fn read_element(&self) -> char {
-        self.vector[self.index as usize]
+        self.vector[self.index]
     }
 
     fn write_element(&mut self, c: char) {
-        self.vector[self.index as usize] = c;
+        if self.vector[self.index] != c {
+            self.vector[self.index] = c;
+            self.dirty = self.index;
+        }
     }
 
-    // TODO: Fix prepare when len of word is 9
-    fn prepare(&mut self, word: &String) {
-        let word_length = word.len();
-
-        // Create a new vector and load blanks into it
-        let size = word_length + (10 - (word_length % 10));
-        let mut new_vector = vec![self.blank; size];
-
-        let offset = (OFFSET_FACTOR * (size as f32)) as usize;
-
-        // Load the word into the new vector
-        for (i, c) in word.chars().enumerate() {
-            new_vector[offset + i] = c;
-        }
-
-        // Replace the old vector with the new one
-        self.vector = new_vector;
-        self.index = offset as i32;
+    fn reset_dirty(&mut self) {
+        self.dirty = usize::MAX;
     }
 
-    fn print(&self) {
-        for i in 0..self.vector.len() {
-            if i == (self.index as usize) {
-                print!("\x1b[31m{}\x1b[0m", self.vector[i]);
-            } else {
-                print!("{}", self.vector[i]);
-            }
-        }
+    fn prepare(&mut self, word: &str) {
+        self.vector = word.chars().collect();
+        self.vector.insert(0, BLANK);
+        self.vector.insert(0, BLANK);
+        self.vector.push(BLANK);
+        self.vector.push(BLANK);
+        self.index = 2;
     }
 }
 
-pub struct TuringMachine {
-    state: i32,
+impl fmt::Display for Tape {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let strings: Vec<String> = self
+            .vector
+            .iter()
+            .enumerate()
+            .map(|(i, v)| match i {
+                i if i == self.index => {
+                    format!("\x1b[34m(\x1b[0m{}\x1b[34m)\x1b[0m", self.vector[i])
+                }
+                i if i == self.dirty => {
+                    format!(" \x1b[33m{}\x1b[0m ", self.vector[i])
+                }
+                _ => format!(" {v} "),
+            })
+            .collect();
+        let joined = strings.join("");
+        write!(f, "{joined}")
+    }
+}
+
+pub struct Machine {
+    state: usize,
     accept_fn: AcceptFn,
     delta_fn: DeltaFn,
     tape: Tape,
 }
 
-impl TuringMachine {
+impl Machine {
+    #[must_use]
     pub fn new(accept: AcceptFn, delta: DeltaFn) -> Self {
         Self {
             state: 0,
@@ -139,42 +128,38 @@ impl TuringMachine {
         }
     }
 
-    pub fn process_word(&mut self, word: &String) -> bool {
+    pub fn process_word(&mut self, word: &str) -> bool {
         self.tape.prepare(word);
-        self.tape.print();
-        println!(" q={}", self.state);
+        println!("{self}");
 
-        let accept_fn = &self.accept_fn;
-        let delta_fn = &self.delta_fn;
+        loop {
+            let state = self.state;
+            let input = self.tape.read_element();
 
-        while !accept_fn(self.state) {
-            let param = DeltaParam {
-                state: self.state,
-                input: self.tape.read_element(),
-            };
-            let result = delta_fn(&param);
+            if let Some(result) = (self.delta_fn)(state, input) {
+                self.state = result.state;
+                self.tape.write_element(result.output);
 
-            if result.state == -1 {
-                println!(
-                    "Could not find path for delta({}, {})",
-                    &param.state, &param.input
-                );
-                return false;
+                match result.r#move {
+                    Move::Left => self.tape.move_left(),
+                    Move::Right => self.tape.move_right(),
+                    Move::None => (),
+                };
+
+                println!("{self}");
+                self.tape.reset_dirty();
+            } else {
+                break;
             }
-
-            self.state = result.state;
-            self.tape.write_element(result.output);
-
-            if result.r#move == Move::Left {
-                self.tape.move_left();
-            } else if result.r#move == Move::Right {
-                self.tape.move_right();
-            }
-
-            self.tape.print();
-            println!(" q={}", self.state);
         }
 
-        true
+        (self.accept_fn)(self.state)
+    }
+}
+
+impl fmt::Display for Machine {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let tape = format!("{}", self.tape);
+        write!(f, "q={} | {}", self.state, tape)
     }
 }
