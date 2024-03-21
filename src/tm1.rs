@@ -1,29 +1,20 @@
-use crate::turing::{DeltaParam, DeltaResult, Move, BLANK};
+use crate::turing::{DeltaResult, Move::Left, Move::Right, BLANK};
 
-pub fn accept(q: &i32) -> bool {
-    q == &3
+#[must_use]
+pub const fn accept1(state: usize) -> bool {
+    state == 3
 }
 
-pub fn delta(param: &DeltaParam) -> DeltaResult {
-    if param.state == 0 {
-        if param.input == '0' || param.input == '1' {
-            return DeltaResult::new(0, param.input, Move::Right);
-        } else if param.input == BLANK {
-            return DeltaResult::new(1, BLANK, Move::Left);
-        }
-    } else if param.state == 1 {
-        if param.input == '1' {
-            return DeltaResult::new(1, '0', Move::Left);
-        } else if param.input == '0' || param.input == BLANK {
-            return DeltaResult::new(2, '1', Move::Left);
-        }
-    } else if param.state == 2 {
-        if param.input == '0' || param.input == '1' {
-            return DeltaResult::new(2, param.input, Move::Left);
-        } else if param.input == BLANK {
-            return DeltaResult::new(3, BLANK, Move::Right);
-        }
-    }
-
-    DeltaResult::new(-1, BLANK, Move::None)
+#[must_use]
+pub const fn delta1(state: usize, input: char) -> Option<DeltaResult> {
+    let (state, output, r#move) = match (state, input) {
+        (0, '0' | '1') => (0, input, Right),
+        (0, BLANK) => (1, BLANK, Left),
+        (1, '1') => (1, '0', Left),
+        (1, '0' | BLANK) => (2, '1', Left),
+        (2, '0' | '1') => (2, input, Left),
+        (2, BLANK) => (3, BLANK, Right),
+        (_, _) => return None,
+    };
+    Some(DeltaResult::new(state, output, r#move))
 }

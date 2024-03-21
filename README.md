@@ -1,5 +1,5 @@
 # Turing Machine
-Proof of concept turing machine for research purposes.
+Proof of Concept Turing Machine
 
 > [!NOTE]
 > The program has been rewritten in Rust. The original version can be found 

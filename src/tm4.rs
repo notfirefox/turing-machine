@@ -1,74 +1,76 @@
-use crate::turing::{DeltaParam, DeltaResult, Move, BLANK};
+use crate::turing::{DeltaResult, Move, BLANK};
 
-pub fn accept(q: &i32) -> bool {
-    q == &8
+#[must_use]
+pub const fn accept4(state: usize) -> bool {
+    state == 8
 }
 
-pub fn delta(param: &DeltaParam) -> DeltaResult {
-    if param.state == 0 {
-        if param.input == 'a' {
-            return DeltaResult::new(0, 'A', Move::Right);
-        } else if param.input == 'b' {
-            return DeltaResult::new(0, 'B', Move::Right);
-        } else if param.input == BLANK {
-            return DeltaResult::new(1, BLANK, Move::Left);
+#[must_use]
+pub const fn delta4(state: usize, input: char) -> Option<DeltaResult> {
+    if state == 0 {
+        if input == 'a' {
+            return Some(DeltaResult::new(0, 'A', Move::Right));
+        } else if input == 'b' {
+            return Some(DeltaResult::new(0, 'B', Move::Right));
+        } else if input == BLANK {
+            return Some(DeltaResult::new(1, BLANK, Move::Left));
         }
-    } else if param.state == 1 {
-        if param.input == 'a' || param.input == 'b' || param.input == 'A' || param.input == 'B' {
-            return DeltaResult::new(1, param.input, Move::Left);
-        } else if param.input == BLANK {
+    } else if state == 1 {
+        if input == 'a' || input == 'b' || input == 'A' || input == 'B' {
+            return Some(DeltaResult::new(1, input, Move::Left));
+        } else if input == BLANK {
             // state = 2 => found first A or B
-            return DeltaResult::new(2, BLANK, Move::Right);
+            return Some(DeltaResult::new(2, BLANK, Move::Right));
         }
-    } else if param.state == 2 {
-        if param.input == 'A' {
+    } else if state == 2 {
+        if input == 'A' {
             // state = 3 => append a
-            return DeltaResult::new(3, 'a', Move::Right);
-        } else if param.input == 'B' {
+            return Some(DeltaResult::new(3, 'a', Move::Right));
+        } else if input == 'B' {
             // state 4 => append b
-            return DeltaResult::new(4, 'b', Move::Right);
+            return Some(DeltaResult::new(4, 'b', Move::Right));
         }
-    } else if param.state == 3 {
-        if param.input == 'a' || param.input == 'b' || param.input == 'A' || param.input == 'B' {
-            return DeltaResult::new(param.state, param.input, Move::Right);
-        } else if param.input == BLANK {
+    } else if state == 3 {
+        if input == 'a' || input == 'b' || input == 'A' || input == 'B' {
+            return Some(DeltaResult::new(state, input, Move::Right));
+        } else if input == BLANK {
             // state = 5 => go left to next blank
-            return DeltaResult::new(5, 'a', Move::Left);
+            return Some(DeltaResult::new(5, 'a', Move::Left));
         }
-    } else if param.state == 4 {
-        if param.input == 'a' || param.input == 'b' || param.input == 'A' || param.input == 'B' {
-            return DeltaResult::new(param.state, param.input, Move::Right);
-        } else if param.input == BLANK {
+    } else if state == 4 {
+        if input == 'a' || input == 'b' || input == 'A' || input == 'B' {
+            return Some(DeltaResult::new(state, input, Move::Right));
+        } else if input == BLANK {
             // state = 5 => go left to next blank
-            return DeltaResult::new(5, 'b', Move::Left);
+            return Some(DeltaResult::new(5, 'b', Move::Left));
         }
-    } else if param.state == 5 {
-        if param.input == 'a' || param.input == 'b' || param.input == 'A' || param.input == 'B' {
-            return DeltaResult::new(5, param.input, Move::Left);
-        } else if param.input == BLANK {
+    } else if state == 5 {
+        if input == 'a' || input == 'b' || input == 'A' || input == 'B' {
+            return Some(DeltaResult::new(5, input, Move::Left));
+        } else if input == BLANK {
             // state = 6 => reached first character
-            return DeltaResult::new(6, BLANK, Move::Right);
+            return Some(DeltaResult::new(6, BLANK, Move::Right));
         }
-    } else if param.state == 6 {
-        if param.input == 'a' || param.input == 'b' {
+    } else if state == 6 {
+        if input == 'a' || input == 'b' {
             // still searching for A or B
-            return DeltaResult::new(6, param.input, Move::Right);
-        } else if param.input == 'A' || param.input == 'B' {
+            return Some(DeltaResult::new(6, input, Move::Right));
+        } else if input == 'A' || input == 'B' {
             // found A or B
-            return DeltaResult::new(2, param.input, Move::None);
-        } else if param.input == BLANK {
+            return Some(DeltaResult::new(2, input, Move::None));
+        } else if input == BLANK {
             // reached end without finding A or B
-            return DeltaResult::new(7, BLANK, Move::Left);
+            return Some(DeltaResult::new(7, BLANK, Move::Left));
         }
-    } else if param.state == 7 {
-        if param.input == 'a' || param.input == 'b' {
+    } else if state == 7 {
+        if input == 'a' || input == 'b' {
             // did not find leftmost BLANK yet
-            return DeltaResult::new(7, param.input, Move::Left);
-        } else if param.input == BLANK {
+            return Some(DeltaResult::new(7, input, Move::Left));
+        } else if input == BLANK {
             // found beginning of word
-            return DeltaResult::new(8, BLANK, Move::Right);
+            return Some(DeltaResult::new(8, BLANK, Move::Right));
         }
     }
 
-    DeltaResult::new(-1, BLANK, Move::None)
+    None
 }

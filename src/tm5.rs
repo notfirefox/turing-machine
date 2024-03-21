@@ -1,43 +1,45 @@
-use crate::turing::{DeltaParam, DeltaResult, Move, BLANK};
+use crate::turing::{DeltaResult, Move, BLANK};
 
-pub fn accept(q: &i32) -> bool {
-    q == &5
+#[must_use]
+pub const fn accept5(state: usize) -> bool {
+    state == 5
 }
 
-pub fn delta(param: &DeltaParam) -> DeltaResult {
-    if param.state == 0 {
-        if param.input == 'a' {
-            return DeltaResult::new(1, 'A', Move::Right);
-        } 
-    } else if param.state == 1 {
-        if param.input == 'X' {
-            return DeltaResult::new(1, 'X', Move::Right);
-        } else if param.input == 'a' {
-            return DeltaResult::new(2, 'X', Move::Right);
-        } else if param.input == BLANK {
-            return DeltaResult::new(5, BLANK, Move::None);
+#[must_use]
+pub const fn delta5(state: usize, input: char) -> Option<DeltaResult> {
+    if state == 0 {
+        if input == 'a' {
+            return Some(DeltaResult::new(1, 'A', Move::Right));
         }
-    } else if param.state == 2 {
-        if param.input == 'X' {
-            return DeltaResult::new(2, 'X', Move::Right);
-        } else if param.input == 'a' {
-            return DeltaResult::new(3, 'a', Move::Right);
-        } else if param.input == BLANK {
-            return DeltaResult::new(4, BLANK, Move::Left);
+    } else if state == 1 {
+        if input == 'X' {
+            return Some(DeltaResult::new(1, 'X', Move::Right));
+        } else if input == 'a' {
+            return Some(DeltaResult::new(2, 'X', Move::Right));
+        } else if input == BLANK {
+            return Some(DeltaResult::new(5, BLANK, Move::None));
         }
-    } else if param.state == 3 {
-        if param.input == 'a' {
-            return DeltaResult::new(2, 'X', Move::Right);
-        } else if param.input == 'X' {
-            return DeltaResult::new(3, 'X', Move::Left);
+    } else if state == 2 {
+        if input == 'X' {
+            return Some(DeltaResult::new(2, 'X', Move::Right));
+        } else if input == 'a' {
+            return Some(DeltaResult::new(3, 'a', Move::Right));
+        } else if input == BLANK {
+            return Some(DeltaResult::new(4, BLANK, Move::Left));
         }
-    } else if param.state == 4 {
-        if param.input == 'X' || param.input == 'a' {
-            return DeltaResult::new(4, param.input, Move::Left);
-        } else if param.input == 'A' {
-            return DeltaResult::new(1, 'A', Move::Right);
+    } else if state == 3 {
+        if input == 'a' {
+            return Some(DeltaResult::new(2, 'X', Move::Right));
+        } else if input == 'X' {
+            return Some(DeltaResult::new(3, 'X', Move::Left));
+        }
+    } else if state == 4 {
+        if input == 'X' || input == 'a' {
+            return Some(DeltaResult::new(4, input, Move::Left));
+        } else if input == 'A' {
+            return Some(DeltaResult::new(1, 'A', Move::Right));
         }
     }
 
-    DeltaResult::new(-1, BLANK, Move::None)
+    None
 }
