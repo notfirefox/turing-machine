@@ -1,5 +1,4 @@
 use core::fmt;
-use std::usize;
 
 pub const BLANK: char = '*';
 
