@@ -1,4 +1,4 @@
-use crate::turing::{DeltaResult, Move, BLANK};
+use crate::turing::{DeltaResult, Move::Left, Move::Right, BLANK};
 
 #[must_use]
 pub const fn accept3(state: usize) -> bool {
@@ -7,23 +7,18 @@ pub const fn accept3(state: usize) -> bool {
 
 #[must_use]
 pub const fn delta3(state: usize, input: char) -> Option<DeltaResult> {
-    if state == 0 {
-        if input == 'a' {
-            return Some(DeltaResult::new(0, 'b', Move::Right));
-        } else if input == 'b' {
-            return Some(DeltaResult::new(0, 'a', Move::Right));
-        } else if input == 'c' || input == 'd' {
-            return Some(DeltaResult::new(0, input, Move::Right));
-        } else if input == BLANK {
-            return Some(DeltaResult::new(1, BLANK, Move::Left));
-        }
-    } else if state == 1 {
-        if input == 'a' || input == 'b' || input == 'c' || input == 'd' {
-            return Some(DeltaResult::new(1, input, Move::Left));
-        } else if input == BLANK {
-            return Some(DeltaResult::new(2, BLANK, Move::Right));
-        }
-    }
-
-    None
+    let (state, output, r#move) = match (state, input) {
+        (0, 'a') => (0, 'b', Right),
+        (0, 'b') => (0, 'a', Right),
+        (0, 'c') => (0, 'c', Right),
+        (0, 'd') => (0, 'd', Right),
+        (0, BLANK) => (1, BLANK, Left),
+        (1, 'a') => (1, 'a', Left),
+        (1, 'b') => (1, 'b', Left),
+        (1, 'c') => (1, 'c', Left),
+        (1, 'd') => (1, 'd', Left),
+        (1, BLANK) => (2, BLANK, Right),
+        (_, _) => return None,
+    };
+    Some(DeltaResult::new(state, output, r#move))
 }
