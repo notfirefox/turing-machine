@@ -10,6 +10,6 @@ Proof of Concept Turing Machine
 
 ## :rocket: Usage
 Run the program using the following command.
-```
+```sh
 cargo run
 ```
