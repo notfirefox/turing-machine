@@ -13,3 +13,20 @@ Run the program using the following command.
 ```sh
 cargo run
 ```
+
+Lets consider what happens for the input `111`:
+```
+$ cargo run
+Enter word: 
+111
+q=0 |  *  * (1) 1  1  *  * 
+q=0 |  *  *  1 (1) 1  *  * 
+q=0 |  *  *  1  1 (1) *  * 
+q=0 |  *  *  1  1  1 (*) * 
+q=1 |  *  *  1  1 (1) *  * 
+q=1 |  *  *  1 (1) 0  *  * 
+q=1 |  *  * (1) 0  0  *  * 
+q=1 |  * (*) 0  0  0  *  * 
+q=2 | (*) 1  0  0  0  *  * 
+q=3 |  * (1) 0  0  0  *  *
+```
